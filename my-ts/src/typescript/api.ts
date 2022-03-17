@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-09 10:35:05
- * @LastEditTime: 2022-03-10 17:07:27
+ * @LastEditTime: 2022-03-17 16:57:48
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /TypeScript/my-ts/src/typescript/api.ts
@@ -113,7 +113,7 @@ obj1 = 1;
 obj1 = null;
 obj1 = {};
 // // ---------------------------------------------------------------------------------
-let Obj1: Object;  // * 代表所有拥有 toString、hasOwnProperty 方法的类型，所以所有原始类型、非原始类型都可以赋给 Object。同样，在严格模式下，null 和 undefined 类型也不能赋给 Object。
+let Obj1: Object;  // * 代表所有拥有 toString、hasOwnProperty 方法(返回一个布尔值，指示对象自身属性中是否具有指定的属性)的类型，所以所有原始类型、非原始类型都可以赋给 Object。同样，在严格模式下，null 和 undefined 类型也不能赋给 Object。
 Obj1 = 1;
 Obj1 = null;
 Obj1 = {};
@@ -235,7 +235,7 @@ interface Param {
   data: string
 };
 let value: Param = { data: '123456' };
-type Value = typeof value; // type Value = Param  // * typeof 的主要用途是在类型上下文中获取变量或者属性的类型
+type Value = typeof value; // type Value = Param  // * typeof 的主要用途是在类型上下文中获取变量或者属性的类型。
 let value2: Value = { data: '110' };  // * 在上面代码中，我们通过 typeof 操作符获取 value 变量的类型并赋值给 Value 类型变量，之后我们就可以使用 Value 类型。
 
 
@@ -259,6 +259,7 @@ type To = {
 const to: To = { name: '刘可', age: 23, done: true };
 // // ---------------------------------------------------------------------------------
 function prop(obj: To, key: string) {
+  // @ts-ignore 是告诉ts, 我不想让ts检查下面这行, ts就不会报错了.
   return obj[key]; // 报错： 元素隐式具有 "any" 类型，因为类型为 "string" 的表达式不能用于索引类型 "{}"。在类型 "{}" 上找不到具有类型为 "string" 的参数的索引签名。ts(7053)
 };
 function prop1(obj: To, key: string) { // * 解决方案1 不推荐
@@ -274,7 +275,7 @@ prop3(to, 'age');
 
 
 // ? in
-type Keys = 'a' | 'b' | 'c';  // * 用来遍历枚举类型
+type Keys = 'a' | 'b' | 'c';  // * 用来遍历联合类型
 type K = {
   [k in Keys] : any  // { a: any, b: any, c: any }
 };
@@ -289,3 +290,161 @@ const n1: getName<wg> = '乌龟';
 
 // todo 内置的工具类型
 // ? Partial
+type Partial_<T> = { // * 定义  将类型的属性变成可选。
+  [P in keyof T]? : T[P] // * 首先通过 keyof T 拿到 T 的所有属性名，然后使用 in 进行遍历，将值赋给 P，最后通过 T[P] 取得相应的属性值的类。中间的 ? 号，用于将所有属性变为可选。
+};
+interface UserInfo {
+  name: string,
+  age: number
+};
+type NewUserInfo = Partial_<UserInfo>;
+const lk: NewUserInfo = { name: '刘可' };
+// // ---------------------------------------------------------------------------------
+interface My {  // * 但是 Partial<T> 有个局限性，就是只支持处理第一层的属性。解决：
+  name: string,
+  age: number,
+  other: {
+    sex: string
+  }
+};
+type DeepPartial<T> = {
+  [P in keyof T]? : T[P] extends object ? DeepPartial<T[P]> : T[P] // * 递归
+};
+type NewMy = DeepPartial<My>;
+const my: NewMy = { other: {} };
+
+
+// ? Required
+type Required_<T> = {  // * 定义  将类型的属性变成必选。
+  [P in keyof T]-? : T[P] // * 其中 -? 是代表移除 ?
+};
+
+
+// ? Readonly
+type Readonly_<T> = {  // * 定义 将某个类型所有属性变为只读属性，也就意味着这些属性不能被重新赋值。
+  readonly [P in keyof T] : T[P]
+};
+
+
+// ? Exclude
+type Exclude_<T, U> = T extends U ? never : T; // * 定义  将某个类型中属于另一个的类型移除掉。
+type T0 = Exclude_<'a' | 'b' | 'c', 'a'>; // "b" | "c"
+type T1 = Exclude_<1 | 'b' | true, 1>; // true | "b"
+
+
+// ? Extract
+type Extract_<T, U> = T extends U ? U : never; // * 定义  作用是从 U 中提取出 T。
+type E0 = Extract_<'a' | 'b' | 'c', 'a'>; // E0 = "a"
+
+
+// ? Pick
+type Pick_<T, K extends keyof T> = { // * 定义  从某个类型中挑出一些属性出来。 先约束 K 为 T 的键值(此时为联合类型)，然后 P 遍历联合类型。
+  [P in K] : T[P]
+};
+interface Do {
+  title: string,
+  todo: string,
+  completed: boolean
+};
+type NewDo = Pick_<Do, 'title' | 'todo'>;
+const do1: NewDo = { title: 'Pick', todo: '从某个类型中挑出一些属性出来' };
+
+
+// ? Omit
+type Omit_<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>; // * 定义 使用 T 类型中除了 K 类型的所有属性，来构造一个新的类型。
+interface O1 {
+  title: string,
+  id: number,
+  completed: boolean
+};
+type O2 = Omit_<O1, 'id'>; // { title: string, completed: boolean }
+const O3: O2 = { title: '刘可', completed: true };
+
+
+// ? Record
+type Record_<K extends keyof any, T> = { // * 定义  将 K 中所有的属性的值转化为 T 类型。
+  [P in K] : T
+};
+interface Page {
+  name: string;
+};
+type PageInfo = '刘可' | '刘寅';
+const name2: Record_<PageInfo, Page> = {
+  '刘可': {name: 'a'},
+  '刘寅': {name: 'b'}
+};
+
+
+// ? ReturnType
+type ReturnType_<T extends (...args: any[]) => any> = T extends (...args: any[]) => infer R ? R : any;  // * 定义  用来得到一个函数的返回值类型。
+type Func = (value: number) => string;
+const foo: ReturnType_<Func> = '1'; // * ReturnType获取到 Func 的返回值类型为 string，所以，foo 也就只能被赋值为字符串了。
+
+
+// ? NonNullable
+type NonNullable_<T> = T extends null | undefined ? never : T;  // * 定义  用来过滤类型中的 null 及 undefined 类型。
+type N0 = NonNullable_<string | number | undefined>; // string | number
+
+
+
+// ! tsconfig.json
+// todo 重要字段
+// * files - 设置要编译的文件的名称；
+// * include - 设置需要进行编译的文件，支持路径模式匹配；
+// * exclude - 设置无需进行编译的文件，支持路径模式匹配；
+// * compilerOptions - 设置与编译流程相关的选项。
+
+// todo compilerOptions 选项
+const compilerOptions = {
+  "compilerOptions": {
+
+    /* 基本选项 */
+    "target": "es5",                       // 指定 ECMAScript 目标版本: 'ES3' (default), 'ES5', 'ES6'/'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'
+    "module": "commonjs",                  // 指定使用模块: 'commonjs', 'amd', 'system', 'umd' or 'es2015'
+    "lib": [],                             // 指定要包含在编译中的库文件
+    "allowJs": true,                       // 允许编译 javascript 文件
+    "checkJs": true,                       // 报告 javascript 文件中的错误
+    "jsx": "preserve",                     // 指定 jsx 代码的生成: 'preserve', 'react-native', or 'react'
+    "declaration": true,                   // 生成相应的 '.d.ts' 文件
+    "sourceMap": true,                     // 生成相应的 '.map' 文件
+    "outFile": "./",                       // 将输出文件合并为一个文件
+    "outDir": "./",                        // 指定输出目录
+    "rootDir": "./",                       // 用来控制输出目录结构 --outDir.
+    "removeComments": true,                // 删除编译后的所有的注释
+    "noEmit": true,                        // 不生成输出文件
+    "importHelpers": true,                 // 从 tslib 导入辅助工具函数
+    "isolatedModules": true,               // 将每个文件做为单独的模块 （与 'ts.transpileModule' 类似）.
+
+    /* 严格的类型检查选项 */
+    "strict": true,                        // 启用所有严格类型检查选项
+    "noImplicitAny": true,                 // 在表达式和声明上有隐含的 any类型时报错
+    "strictNullChecks": true,              // 启用严格的 null 检查
+    "noImplicitThis": true,                // 当 this 表达式值为 any 类型的时候，生成一个错误
+    "alwaysStrict": true,                  // 以严格模式检查每个模块，并在每个文件里加入 'use strict'
+
+    /* 额外的检查 */
+    "noUnusedLocals": true,                // 有未使用的变量时，抛出错误
+    "noUnusedParameters": true,            // 有未使用的参数时，抛出错误
+    "noImplicitReturns": true,             // 并不是所有函数里的代码都有返回值时，抛出错误
+    "noFallthroughCasesInSwitch": true,    // 报告 switch 语句的 fallthrough 错误。（即，不允许 switch 的 case 语句贯穿）
+
+    /* 模块解析选项 */
+    "moduleResolution": "node",            // 选择模块解析策略： 'node' (Node.js) or 'classic' (TypeScript pre-1.6)
+    "baseUrl": "./",                       // 用于解析非相对模块名称的基目录
+    "paths": {},                           // 模块名到基于 baseUrl 的路径映射的列表
+    "rootDirs": [],                        // 根文件夹列表，其组合内容表示项目运行时的结构内容
+    "typeRoots": [],                       // 包含类型声明的文件列表
+    "types": [],                           // 需要包含的类型声明文件名列表
+    "allowSyntheticDefaultImports": true,  // 允许从没有设置默认导出的模块中默认导入。
+
+    /* Source Map Options */
+    "sourceRoot": "./",                    // 指定调试器应该找到 TypeScript 文件而不是源文件的位置
+    "mapRoot": "./",                       // 指定调试器应该找到映射文件而不是生成文件的位置
+    "inlineSourceMap": true,               // 生成单个 soucemaps 文件，而不是将 sourcemaps 生成不同的文件
+    "inlineSources": true,                 // 将代码与 sourcemaps 生成到一个文件中，要求同时设置了 --inlineSourceMap 或 --sourceMap 属性
+
+    /* 其他选项 */
+    "experimentalDecorators": true,        // 启用装饰器
+    "emitDecoratorMetadata": true          // 为装饰器提供元数据的支持
+  }
+};
