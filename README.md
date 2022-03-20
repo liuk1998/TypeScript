@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-04 14:06:45
- * @LastEditTime: 2022-03-17 17:02:20
+ * @LastEditTime: 2022-03-18 19:15:51
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /TypeScript/README.md
@@ -27,3 +27,4 @@
 #### (3)多态。成员方法重载与重写。适用于强语言，对于JavaScript来说意义不大。
 ####    重载为 当前类已经声明一个成员方法，再次在当前类中重新写一遍这个方法。
 ####    重写为 当前类已经声明一个成员方法，继承这个类的子类再次重新写一遍这个方法。
+
