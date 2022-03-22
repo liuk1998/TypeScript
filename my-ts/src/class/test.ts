@@ -1,12 +1,14 @@
 /*
  * @Author: your name
  * @Date: 2022-03-18 12:44:10
- * @LastEditTime: 2022-03-20 12:53:41
+ * @LastEditTime: 2022-03-21 11:30:12
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /TypeScript/my-ts/src/class/test.ts
  */
 // ! 调用设计模式
+import { B } from '../network/http';
+import Ws from '../network/websocket';
 import SingleCase, { Land, Sea } from './DesignMode';
 import EventManger from './DesignModePlus';
 import Event from './lisi';
@@ -39,3 +41,16 @@ setTimeout(() => {
 setTimeout(() => {
   EventManger.fireEvent('test');
 }, 2500);
+
+
+
+// ! 调用http
+
+B({}).then((res) => {
+  console.log('dsasdsdsaddsadsad', res);
+}).catch((err) => {
+  console.error(err);
+})
+
+// ! 调用websocket
+// Ws.startWs();
